@@ -1,85 +1,237 @@
-# OpenAPI Generator for the my-codegen library
+# OpenAPI Spring Boot Generator
+
+Custom OpenAPI Generator plugin providing specialized code generators for Spring Boot reactive servers and Retrofit clients.
 
 ## Overview
-This is a boiler-plate project to generate your own project derived from an OpenAPI specification.
-Its goal is to get you started with the basic plumbing so you can put in your own logic.
-It won't work without your changes applied.
 
-## What's OpenAPI
-The goal of OpenAPI is to define a standard, language-agnostic interface to REST APIs which allows both humans and computers to discover and understand the capabilities of the service without access to source code, documentation, or through network traffic inspection.
-When properly described with OpenAPI, a consumer can understand and interact with the remote service with a minimal amount of implementation logic.
-Similar to what interfaces have done for lower-level programming, OpenAPI removes the guesswork in calling the service.
+This plugin extends the OpenAPI Generator with two custom generators:
 
-Check out [OpenAPI-Spec](https://github.com/OAI/OpenAPI-Specification) for additional information about the OpenAPI project, including additional libraries with support for other languages and more.
+- **`springboot`**: Generates reactive Spring Boot 3 server code with WebFlux
+- **`retrofit-client`**: Generates Retrofit 2 client libraries with Jackson serialization
 
-## How do I use this?
-At this point, you've likely generated a client setup.  It will include something along these lines:
+## Building the Plugin
 
-```
-.
-|- README.md    // this file
-|- pom.xml      // build script
-|-- src
-|--- main
-|---- java
-|----- com.heinunez.openapi.codegen.SpringBootGenerator.java // generator file
-|---- resources
-|----- my-codegen // template files
-|----- META-INF
-|------ services
-|------- org.openapitools.codegen.CodegenConfig
-```
+```bash
+# Clean and compile
+mvn clean compile
 
-You _will_ need to make changes in at least the following:
+# Run tests
+mvn test
 
-`MyCodegenGenerator.java`
-
-Templates in this folder:
-
-`src/main/resources/my-codegen`
-
-Once modified, you can run this:
-
-```
+# Package the plugin JAR
 mvn package
 ```
 
-In your generator project. A single jar file will be produced in `target`. You can now use that with [OpenAPI Generator](https://openapi-generator.tech):
+The packaged JAR will be available at `target/springboot-generator-1.0.0.jar`.
 
-For mac/linux:
-```
-java -cp /path/to/openapi-generator-cli.jar:/path/to/your.jar org.openapitools.codegen.OpenAPIGenerator generate -g my-codegen -i /path/to/openapi.yaml -o ./test
-```
-(Do not forget to replace the values `/path/to/openapi-generator-cli.jar`, `/path/to/your.jar` and `/path/to/openapi.yaml` in the previous command)
+## Installation
 
-For Windows users, you will need to use `;` instead of `:` in the classpath, e.g.
-```
-java -cp /path/to/openapi-generator-cli.jar;/path/to/your.jar org.openapitools.codegen.OpenAPIGenerator generate -g my-codegen -i /path/to/openapi.yaml -o ./test
-```
+After building, install the plugin JAR to make it available to OpenAPI Generator:
 
-Now your templates are available to the client generator and you can write output values
+```bash
+# Add to your local Maven repository
+mvn install
 
-## But how do I modify this?
-The `MyCodegenGenerator.java` has comments in it--lots of comments.  There is no good substitute
-for reading the code more, though.  See how the `MyCodegenGenerator` implements `CodegenConfig`.
-That class has the signature of all values that can be overridden.
-
-You can also step through MyCodegenGenerator.java in a debugger.  Just debug the JUnit
-test in DebugCodegenLauncher.  That runs the command line tool and lets you inspect what the code is doing.
-
-For the templates themselves, you have a number of values available to you for generation.
-You can execute the `java` command from above while passing different debug flags to show
-the object you have available during client generation:
-
-```
-# The following additional debug options are available for all codegen targets:
-# -DdebugOpenAPI prints the OpenAPI Specification as interpreted by the codegen
-# -DdebugModels prints models passed to the template engine
-# -DdebugOperations prints operations passed to the template engine
-# -DdebugSupportingFiles prints additional data passed to the template engine
-
-java -DdebugOperations -cp /path/to/openapi-generator-cli.jar:/path/to/your.jar org.openapitools.codegen.OpenAPIGenerator generate -g my-codegen -i /path/to/openapi.yaml -o ./test
+# Or copy to your OpenAPI Generator plugins directory
+cp target/springboot-generator-1.0.0.jar /path/to/openapi-generator/modules/
 ```
 
-Will, for example, output the debug info for operations.
-You can use this info in the `api.mustache` file.
+## Usage
+
+### Maven Plugin Integration
+
+For existing Maven projects, you can integrate the generators using the OpenAPI Generator Maven plugin:
+
+#### pom.xml Configuration
+
+Add the following to your project's `pom.xml`:
+
+```xml
+<build>
+  <plugins>
+    <plugin>
+      <groupId>org.openapitools</groupId>
+      <artifactId>openapi-generator-maven-plugin</artifactId>
+      <version>7.15.0</version>
+      <dependencies>
+        <!-- Add this plugin as a dependency -->
+        <dependency>
+          <groupId>com.heinunez.openapi</groupId>
+          <artifactId>springboot-generator</artifactId>
+          <version>1.0.0</version>
+        </dependency>
+      </dependencies>
+      <executions>
+        <!-- Spring Boot Server Generation -->
+        <execution>
+          <id>generate-server</id>
+          <goals>
+            <goal>generate</goal>
+          </goals>
+          <configuration>
+            <inputSpec>${project.basedir}/src/main/resources/openapi.yaml</inputSpec>
+            <generatorName>springboot</generatorName>
+            <configOptions>
+              <basePackage>com.example.petstore</basePackage>
+            </configOptions>
+          </configuration>
+        </execution>
+
+        <!-- Retrofit Client Generation -->
+        <execution>
+          <id>generate-client</id>
+          <goals>
+            <goal>generate</goal>
+          </goals>
+          <configuration>
+            <inputSpec>${project.basedir}/src/main/resources/openapi.yaml</inputSpec>
+            <generatorName>retrofit-client</generatorName>
+            <configOptions>
+              <serverBasePackage>com.example</serverBasePackage>
+              <clientId>petstore</clientId>
+            </configOptions>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</build>
+```
+
+#### Generate Code
+
+```bash
+# Generate code during build
+mvn generate-sources
+
+# Or run the full build
+mvn clean compile
+```
+
+### SpringBoot Generator
+
+Generates reactive Spring Boot 3 server code with WebFlux support.
+
+#### Basic Usage
+
+```bash
+openapi-generator-cli generate \
+  -i petstore.yaml \
+  -g springboot \
+  -o ./generated-server \
+  --package-name com.example.petstore
+```
+
+#### Features
+
+- **Reactive WebFlux**: Uses Spring WebFlux for reactive programming
+- **Interface-only Controllers**: Generates controller interfaces without implementation
+- **Bean Validation**: Built-in validation using Jakarta Bean Validation
+- **Spring Boot 3**: Targets Spring Boot 3 with modern Java features
+- **Custom Configuration**: Includes exception handling and converter factories
+
+#### Generated Structure
+
+```
+generated-server/
+├── src/gen/
+│   └── com/example/petstore/
+│       ├── OpenApiApplication.java           # Main Spring Boot application
+│       ├── api/                              # Controller interfaces
+│       │   └── PetApi.java
+│       ├── model/                            # Data models
+│       │   └── Pet.java
+│       └── config/                           # Configuration classes
+│           ├── DefaultControllerAdvice.java  # Global exception handler
+│           ├── ReactorCallAdapterFactoryBuilder.java
+│           └── JacksonAdapterFactoryBuilder.java
+```
+
+#### Configuration Options
+
+All standard SpringCodegen options are supported, plus:
+- `basePackage`: Base package for generated code (default: `org.openapitools`)
+- Uses Java 8 date/time API by default
+
+### Retrofit Client Generator
+
+Generates Retrofit 2 client libraries for consuming REST APIs.
+
+#### Basic Usage
+
+```bash
+openapi-generator-cli generate \
+  -i petstore.yaml \
+  -g retrofit-client \
+  -o ./generated-client \
+  --additional-properties=serverBasePackage=com.example,clientId=petstore
+```
+
+#### Required Parameters
+
+- `serverBasePackage`: Base package for the generated client
+- `clientId`: Unique identifier for this client (used in package naming)
+
+#### Features
+
+- **Retrofit 2**: Modern HTTP client library for Android and Java
+- **Jackson Serialization**: JSON serialization using Jackson
+- **Jakarta EE**: Uses Jakarta EE annotations
+- **No Documentation**: Optimized for code generation without docs/tests
+- **Configurable Packages**: Flexible package structure based on parameters
+
+#### Generated Structure
+
+```
+generated-client/
+└── src/gen/
+    └── com/example/clients/petstore/
+        ├── api/                    # Retrofit service interfaces
+        │   └── PetApi.java
+        ├── model/                  # Data models
+        │   └── Pet.java
+        └── config/                 # Configuration (minimal)
+```
+
+#### Package Structure
+
+The generated packages follow this pattern:
+- **API Package**: `{serverBasePackage}.clients.{clientId}`
+- **Model Package**: `{serverBasePackage}.clients.{clientId}.model`
+- **Config Package**: `{serverBasePackage}.clients.{clientId}.config`
+
+## Development
+
+### Running Tests
+
+The project includes a test harness for debugging generators:
+
+```bash
+# Run the test (generates code to out/my-codegen)
+mvn test -Dtest=SpringBootGeneratorTest#launchCodeGenerator
+```
+
+### Debugging
+
+1. Set breakpoints in the generator classes
+2. Run `SpringBootGeneratorTest#launchCodeGenerator` in debug mode
+3. Step through the code generation process
+4. Inspect generated output in `out/my-codegen`
+
+### Custom Templates
+
+Templates are located in `src/main/resources/`:
+- **Spring Boot**: `JavaSpring/libraries/spring-boot/*.mustache`
+- **Retrofit**: `Java/libraries/retrofit2/*.mustache`
+
+Modify these templates to customize the generated code structure and content.
+
+## Requirements
+
+- Java 21+
+- Maven 3.6+
+- OpenAPI Generator 7.15.0+
+
+## License
+
+This project follows the same license as the OpenAPI Generator project.
