@@ -1,0 +1,39 @@
+package {{basePackage}};
+
+{{#openApiNullable}}
+  import com.fasterxml.jackson.databind.Module;
+  import org.openapitools.jackson.nullable.JsonNullableModule;
+{{/openApiNullable}}
+import io.github.easyretrofit.spring.boot.EnableRetrofit;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
+
+import {{basePackage}}.ddd.DomainService;
+
+@EnableRetrofit
+@SpringBootApplication(
+  nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class
+)
+@ComponentScan(
+  basePackages = {"{{basePackage}}", "{{apiPackage}}" , "{{configPackage}}"},
+  includeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {DomainService.class})},
+  nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class
+)
+public class OpenApiApplication {
+
+public static void main(String[] args) {
+  SpringApplication.run(OpenApiApplication.class, args);
+}
+
+{{#openApiNullable}}
+  @Bean(name = "{{basePackage}}.OpenApiApplication.jsonNullableModule")
+  public Module jsonNullableModule() {
+  return new JsonNullableModule();
+  }
+{{/openApiNullable}}
+
+}

@@ -1,0 +1,61 @@
+package {{configPackage}};
+
+import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import {{modelPackage}}.ValidationError;
+import {{modelPackage}}.ValidationErrorResponse;
+
+@ControllerAdvice
+public class DefaultControllerAdvice {
+
+  @ExceptionHandler(exception = WebExchangeBindException.class)
+  public ResponseEntity<ValidationErrorResponse> handleBindExceptions(
+    ServerHttpRequest req,
+    Errors errors) {
+    var fieldErrors = errors.getFieldErrors().stream()
+    .map(err -> ValidationError.builder()
+    .field(err.getField())
+    .error(err.getDefaultMessage())
+    .build())
+    .toList();
+
+    var error = getResponse(req, fieldErrors);
+    return ResponseEntity.badRequest().body(error);
+  }
+
+  @ExceptionHandler(exception = HandlerMethodValidationException.class)
+  public ResponseEntity<ValidationErrorResponse> handleMethodValidationExceptions(
+    ServerHttpRequest req,
+    HandlerMethodValidationException ex) {
+    var fieldErrors = ex.getParameterValidationResults().stream()
+      .map(e -> e.getResolvableErrors().stream()
+        .map(err -> ValidationError.builder()
+          .field(e.getMethodParameter().getParameterName())
+          .error(err.getDefaultMessage())
+          .build()).toList())
+      .flatMap(Collection::stream)
+      .toList();
+
+    var error = getResponse(req, fieldErrors);
+    return ResponseEntity.badRequest().body(error);
+  }
+
+  private static ValidationErrorResponse getResponse(ServerHttpRequest req,
+    List<ValidationError> fieldErrors) {
+      return ValidationErrorResponse.builder()
+        .path(req.getPath().value())
+        .timestamp(OffsetDateTime.now())
+        .status(HttpStatus.BAD_REQUEST.value())
+        .requestId(req.getId())
+        .errors(fieldErrors).build();
+  }
+}

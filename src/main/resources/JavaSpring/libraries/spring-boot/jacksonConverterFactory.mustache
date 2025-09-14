@@ -1,0 +1,13 @@
+package {{configPackage}};
+
+import io.github.easyretrofit.core.builder.BaseConverterFactoryBuilder;
+import retrofit2.Converter.Factory;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+
+public class JacksonAdapterFactoryBuilder extends BaseConverterFactoryBuilder {
+
+  @Override
+  public Factory buildConverterFactory() {
+    return JacksonConverterFactory.create();
+  }
+}

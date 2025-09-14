@@ -1,0 +1,2 @@
+com.heinunez.openapi.codegen.SpringBootGenerator
+com.heinunez.openapi.codegen.RetrofitClientGenerator
