@@ -232,6 +232,19 @@ Modify these templates to customize the generated code structure and content.
 - Maven 3.6+
 - OpenAPI Generator 7.15.0+
 
+## TODO
+- [ ] mapstruct
+- [ ] resilience4j
+- [ ] jeasy
+- [ ] findbugs
+- [ ] errorprone
+- [ ] graalvm
+- [ ] enforcer plugin
+- [ ] jmolecules hexagonal
+
+## for graalvm in windows
+https://dev.to/binoy_59380e698d318/build-native-image-from-spring-boot-application-with-graalvm-builder-3b7l
+
 ## License
 
 This project follows the same license as the OpenAPI Generator project.

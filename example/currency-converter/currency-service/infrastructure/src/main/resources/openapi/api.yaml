@@ -1,0 +1,176 @@
+openapi: 3.0.3
+info:
+  title: Currency Service API
+  description: Service for managing supported currencies and their metadata
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api@example.com
+servers:
+  - url: http://localhost:3001
+    description: Development server
+  - url: http://currency-service:3001
+    description: Docker/Kubernetes internal service
+
+paths:
+  /currencies:
+    get:
+      summary: List all supported currencies
+      description: Returns a list of all available currencies with their metadata
+      operationId: listCurrencies
+      tags:
+        - Currencies
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Currency'
+              example:
+                - code: USD
+                  name: US Dollar
+                  symbol: $
+                  country: United States
+                - code: EUR
+                  name: Euro
+                  symbol: €
+                  country: European Union
+                - code: GBP
+                  name: British Pound
+                  symbol: £
+                  country: United Kingdom
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /currencies/{code}:
+    get:
+      summary: Get currency by code
+      description: Returns details of a specific currency by its code
+      operationId: getCurrencyByCode
+      tags:
+        - Currencies
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Three-letter currency code (ISO 4217)
+          schema:
+            type: string
+            pattern: '^[A-Z]{3}$'
+            example: USD
+      responses:
+        '200':
+          description: Currency found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Currency'
+              example:
+                code: USD
+                name: US Dollar
+                symbol: $
+                country: United States
+        '404':
+          description: Currency not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Currency code XXX not found
+                status: 404
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Currency:
+      type: object
+      required:
+        - code
+        - name
+        - symbol
+      properties:
+        code:
+          type: string
+          description: ISO 4217 currency code
+          pattern: '^[A-Z]{3}$'
+          example: USD
+        name:
+          type: string
+          description: Full name of the currency
+          example: US Dollar
+        symbol:
+          type: string
+          description: Currency symbol
+          example: $
+        country:
+          type: string
+          description: Country or region using this currency
+          example: United States
+
+    Error:
+      type: object
+      required:
+        - error
+        - status
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Currency not found
+        status:
+          type: integer
+          description: HTTP status code
+          example: 404
+    ValidationError:
+      type: object
+      properties:
+        field:
+          type: string
+        error:
+          type: string
+    ValidationErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+        status:
+          type: integer
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+        requestId:
+          type: string
+    GenericErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+        status:
+          type: integer
+        error:
+          type: string
+        requestId:
+          type: string
+
+tags:
+  - name: Currencies
+    description: Currency management operations

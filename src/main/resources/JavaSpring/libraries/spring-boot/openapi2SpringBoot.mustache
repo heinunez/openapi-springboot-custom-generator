@@ -12,7 +12,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
 
-import {{basePackage}}.ddd.DomainService;
+import org.jmolecules.architecture.hexagonal.Application;
 
 @EnableRetrofit
 @SpringBootApplication(
@@ -20,7 +20,7 @@ import {{basePackage}}.ddd.DomainService;
 )
 @ComponentScan(
   basePackages = {"{{basePackage}}", "{{apiPackage}}" , "{{configPackage}}"},
-  includeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {DomainService.class})},
+  includeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {Application.class})},
   nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class
 )
 public class OpenApiApplication {
